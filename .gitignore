@@ -4,6 +4,10 @@ mochawesome-report/
 mochawesome.json
 mochawesome.html
 
+# Allure
+allure-report/
+allure-results/
+
 # Cypress
 cypress/screenshots/
 cypress/videos/

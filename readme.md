@@ -4,56 +4,69 @@ Este projeto realiza testes automatizados de ponta a ponta (E2E) em um e-commerc
 
 ---
 ## Requisitos
-
+```plaintext
 Node.js ≥ 14
-
-npm ≥ 6
+Cypress
+lib  @faker-js/faker
+```
 ##  Funcionalidades Testadas
 
--  Login com credenciais válidas
--  Adição de produto ao carrinho
--  Preenchimento do formulário de checkout
--  Finalização da compra
--  Validação de mensagem de sucesso
--  Geração de relatório com screenshots
+#### Autenticação
+ -  Login com credenciais válidas e inválidas
+ -  Logout
 
----
+ #### Formulários
+- Validação de campos obrigatórios
+- Envio de dados corretos
+- Mensagens de erro para entradas inválidas
+
+#### Funcionalidades do Produto
+- Criação, edição e exclusão de itens (ex: tarefas, posts, produtos)
 
 ##  Tecnologias Utilizadas
 
-- [Cypress](https://www.cypress.io/) — Framework de testes E2E
-- [Mochawesome](https://github.com/adamgruber/mochawesome) — Gerador de relatórios HTML/JSON
-- [cypress-mochawesome-reporter](https://github.com/LironEr/cypress-mochawesome-reporter) — Integração com Cypress para relatórios com screenshots
+- Cypress — Framework de testes end-to-end
+- Mochawesome — Gerador de relatórios em HTML e JSON
+- Allure — Plataforma avançada de relatórios com visual interativo e integração com CI/CD
+- Node.js — Ambiente de execução JavaScript
+
 
 ## Estrutura do Projeto
-📁 cypress/ <br>
- ┣ 📁 e2e/<br>
- ┃ ┗ api.cy.js<br>
- ┣ 📁 support/<br>
- ┃ ┣ commands.js<br>
- ┃ ┗ e2e.js<br>
+```plaintext
+cypress/
+ e2e/
+  ┗ positiveScenarios.cy.js
+  ┗ negativeScenarios.cy.js
+ ┣ support/
+ ┃ ┣ commands.js
+ ┃ ┗ e2e.js
 cypress.config.js
--
+package.json
+
+```
 
 ##  Configuração
 
  Instalação
 
 
-- npm install
+- npm install cypress
 
--  npm install --save-dev mochawesome mochawesome-merge mochawesome-report-generator cypress-mochawesome-reporter
+- npm install -g allure-commandline --save-dev    
+
+- npm install @faker-js/faker --save-dev
 
 
 
-
-## Executar os testes
+## Comando para execução dos testes
 
 - npx cypress run
 
 ## Modo headless com relatório:
 
 npx cypress run --reporter cypress-mochawesome-reporter
+
+npm run teste  - Executa os testes e gera o report do Allure de forma dinâmica
 
 ## Executar em modo interativo
 
@@ -62,9 +75,11 @@ npx cypress run --reporter cypress-mochawesome-reporter
 
 ## Relatórios com Screenshots:
 
-cypress/reports/mochawesome.html
+- cypress/reports/mochawesome.html
 
+- Allure-results
 
+- Videos
 
 ##  Exemplo de Fixture
 
@@ -77,81 +92,127 @@ cypress/reports/mochawesome.html
 }
 
 
-## Comandos
+## Sobre os testes:
+
+Foram adicionadas duas funções.
+
+```plaintext
+  beforeEach(() => {
+  cy.visit('/');    - Acessa a baseUrl no arquivo cypress.config.js
+  cy.loginValido(); - Acessa a função nos commands
+
+ - Cada cenário de teste possui funções específicas definidas no arquivo commands.js, facilitando a reutilização e organização do código.
+
+ - Utilizei a funcionalidade do Allure Report para documentar os passos de cada teste de forma descritiva e clara no relatório.
+ 
+   Exemplo de uso da função description:
+  
+   cy.allure().description(`
+
+      Dado que estou na página de login do SauceDemo\n 
+      Quando inserir credenciais válidas\n 
+      E clicar no botão de login\n 
+      Então devo ser redirecionado para a página de produtos\n 
+      E visualizar a lista de produtos disponíveis\n 
+`)}
+)
+
+
 ```
-Cypress.Commands.add('login', (username, password) => {
-  cy.visit('https://www.saucedemo.com/');
-  cy.get('[data-test="username"]').type(username);
-  cy.get('[data-test="password"]').type(password);
-  cy.get('[data-test="login-button"]').click();
+
+##  Ajustes realizados no arquivo commands.js tornaram a estrutura mais dinâmica e flexível, permitindo a execução eficiente dos cenários de testes positivos e negativos.
+```
+
+Cypress.Commands.add('loginValido', () => {
+    cy.fixture('usuario').then((usuario) => {
+        cy.get('[data-test="username"]').type(usuario.username);
+        cy.get('[data-test="password"]').type(usuario.password);
+        cy.get('[data-test="login-button"]').click();
+    });
 });
 
-Cypress.Commands.add('checkout', (firstName, lastName, postalCode) => {
-  cy.get('[data-test="checkout"]').click();
-  cy.get('[data-test="firstName"]').type(firstName);
-  cy.get('[data-test="lastName"]').type(lastName);
-  cy.get('[data-test="postalCode"]').type(postalCode);
-  cy.get('[data-test="continue"]').click();
-  cy.get('[data-test="finish"]').click();
-});
+
+
+Cypress.Commands.add('loginInvalido', (username, password) => {
+    if (username) {
+        cy.get('[data-test="username"]').type(username);
+    } else {
+        cy.get('[data-test="username"]').focus().blur(); // simula campo tocado e deixado vazio
+    }
+
+    if (password) {
+        cy.get('[data-test="password"]').type(password);
+    } else {
+        cy.get('[data-test="password"]').focus().blur();
+    }
+
+    cy.get('[data-test="login-button"]').click();
+})
 
 ```````
 
 
- Este projeto está integrado a um pipeline de CI/CD que executa testes automatizados após cada commit ou pull request. O objetivo é garantir qualidade contínua e detectar falhas o mais cedo possível.
 
-## Fluxo Automatizado Pipeline
+## Fluxo Automatizado da Pipeline
+
 Disparo automático: A cada commit ou PR na branch principal (master ou develop), o pipeline é iniciado.
 
-Instalação de dependências: O ambiente é preparado com Node.js, bibliotecas de teste e drivers mobile.
+Instalação de dependências: O ambiente é preparado com Node.js
 
 ## Execução dos testes:
 
 Testes E2E com Cypress
-eração de relatórios: Relatórios em HTML e JSON são gerados e armazenados como artefatos.
+geração de relatórios: Relatórios em HTML e JSON são gerados e armazenados como artefatos.
 
 Feedback no PR: O status dos testes é exibido diretamente no GitHub/GitLab.
 
 ## Arquivo YAML 
 
-exemplo: .github/workflows/test.yml
+exemplo: .github/workflows/cypress.yml
 
+name: Cypress Tests
 
-name: Run Tests
 on:
   push:
-    branches: [master]
+    branches: [ main ]
   pull_request:
-    branches: [master]
+    branches: [ main ]
 
 jobs:
-  test:
+  cypress-run:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x]
-
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      - name: Instalar Node.js
-        uses: actions/setup-node@v3
+      - name: nstalar Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '18'
 
       - name: Instalar dependências
-        run: npm install
+        run: npm ci
 
-    
-      - name: Executar testes E2E (Cypress)
-        run: npx cypress run --reporter mochawesome
+      - name: Executar testes Cypress
+        run: npx cypress run
 
-     
-      - name: Upload de relatórios
-        uses: actions/upload-artifact@v3
+      - name: Salvar resultados do Allure
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: test-reports
-          path: cypress/reports/
+          name: allure-results
+          path: allure-results
 
+      - name: Gerar relatório Allure
+        if: always()
+        run: |
+          npm install -g allure-commandline --save-dev
+          allure generate allure-results --clean -o allure-report
+
+      - name: Publicar relatório como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
